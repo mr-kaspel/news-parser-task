@@ -42,7 +42,7 @@
                 <hr>
                 <div class="mb-3">
                     <label for="attribute-detailed-description" class="form-label">Подробное описание</label>
-                    <input class="form-control" id="attribute-detailed-description" type="text" name="attribute-detailed-description" value="normalize-space(//div[contains(&#64;itemprop, &quot;articleBody&quot;)])">
+                    <input class="form-control" id="attribute-detailed-description" type="text" name="attribute-detailed-description" value="normalize-space(//div[contains(&#64;class, &quot;article__text_free&quot;)])">
                     <div class="form-text">XPath-выражение для поиска подробного описания на детальной странице</div>
                 </div>
                 <div class="mb-3">

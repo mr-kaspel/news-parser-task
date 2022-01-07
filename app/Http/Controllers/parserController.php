@@ -20,22 +20,21 @@ class parserController extends Controller
             if($k+1 >  $req->input('count')) break;
             $v->html = mb_convert_encoding($v->html, 'HTML-ENTITIES', 'utf-8');
 
-            // первичные данные из json файла
-            // парсим данные с первичных данный
              $result = $this->searchData($v->html, [
-                'address' => $req->input('class-name-href'), // ссылка
-                'title' => $req->input('class-name-title'),  //зоголовок
-                'date_text' => $req->input('class-name-additionally') // дополнительное описание
+                'address' => $req->input('class-name-href'),
+                'title' => $req->input('class-name-title'),
+                'date_text' => $req->input('class-name-additionally')
              ]);
 
-            // ---------------------------------------------------------------
-            // парсим данные с детальной старницы
+             if(!$result) return $this->showCustomError();
+
             $result = array_merge($result, $this->searchData($this->getHTML($result), [
-                'image' => $req->input('attribute-detailed-img'), // изображение с детальной страницы
-                'description' => $req->input('attribute-detailed-description') // подробное описание с детальной странице
+                'image' => $req->input('attribute-detailed-img'),
+                'description' => $req->input('attribute-detailed-description')
              ]));
 
-            // можно сделать прогресс бар и обновлять страницу
+             if(!$result) return $this->showCustomError();
+
             $result['alias'] = md5($result['title']);
             $this->saveData($result);
         }
@@ -73,7 +72,12 @@ class parserController extends Controller
         $xpath = new \DOMXpath($doc);
 
         foreach($arrXpath as $k => $v) {
-            $result[$k] = $xpath->evaluate($v);
+            try {
+                $result[$k] = $xpath->evaluate($v);
+            } catch(\Throwable $ex) {
+                return 0;
+            }
+            
         }
 
         return $result;
@@ -92,6 +96,10 @@ class parserController extends Controller
         $news->alias = $data['alias'];
 
         $news->save();
+    }
+
+    private function showCustomError() {
+        return redirect()->route('home')->with('custom_errors', 'Введено неверное выражение XPath!');
     }
 
 }

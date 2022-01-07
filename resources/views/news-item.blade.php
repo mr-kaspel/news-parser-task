@@ -32,7 +32,7 @@
         @endif
          <div class="text-white-50 bg-dark">
              @if($data->description)
-            {{ $data->description }}
+            <p>{{ $data->description }}</p>
             @else
             <div class="alert alert-danger" role="alert">
                 Произошла ошибка, данные не найдены.

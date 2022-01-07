@@ -15,3 +15,9 @@
         {{ session('seccess') }}
     </div>
 @endif
+
+@if(session('custom_errors'))
+    <div class="alert alert-danger alert-dismissible fade show">
+        {{ session('custom_errors') }}
+    </div>
+@endif
