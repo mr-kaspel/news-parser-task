@@ -18,6 +18,7 @@ class CreateNewsTable extends Migration
             $table->string('title');
             $table->text('description');
             $table->string('address');
+            $table->string('source');
             $table->string('date_text');
             $table->string('image');
             $table->string('alias');

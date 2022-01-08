@@ -18,7 +18,7 @@
             <h1 class="display-4 text-white-50 bg-dark">{{ $data->title }}</h1>
         </blockquote>
         <figcaption class="blockquote-footer">
-            <small class="text-muted">{{ $data->date_text }}</small>
+            <small class="text-muted">{{ $data->date_text }}&emsp;&#171;{{ $data->source }}&#187;</small>
         </figcaption>
     </figure>
 

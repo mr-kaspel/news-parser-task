@@ -35,8 +35,10 @@ class parserController extends Controller
 
              if(!$result) return $this->showCustomError();
 
-            $result['alias'] = md5($result['title']);
-            $this->saveData($result);
+             $result['source'] = $this->getDomain($result['address']);
+             $result['alias'] = md5($result['title']);
+             
+             $this->saveData($result);
         }
 
          return redirect()->route('home')->with('seccess', 'Данные собраны и сохранены!');
@@ -91,6 +93,7 @@ class parserController extends Controller
         $news->title = $data['title'];
         $news->description = $data['description'];
         $news->address = $data['address'];
+        $news->source = $data['source'];
         $news->date_text = $data['date_text'];
         $news->image = $data['image'];
         $news->alias = $data['alias'];
@@ -100,6 +103,11 @@ class parserController extends Controller
 
     private function showCustomError() {
         return redirect()->route('home')->with('custom_errors', 'Введено неверное выражение XPath!');
+    }
+
+    private function getDomain($addr) {
+        preg_match('/[\w]{2,}\.ru/siU', $addr, $m);
+        return $m[0];
     }
 
 }
