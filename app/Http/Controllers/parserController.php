@@ -7,13 +7,18 @@ use App\Http\Requests\SettingsRequest;
 use App\Database\Eloquent\Model\Model;
 use Illuminate\Support\Str;
 use App\Models\News;
+use App\Models\Domains;
 
 class parserController extends Controller
 {
 
     public function parserNews(SettingsRequest $req) {
 
-        $json = json_decode($this->getHTML($req->input()));
+        $html = $this->getHTML($req->input());
+
+        if(!$html) return $this->showCustomError('Страница недоступна, проверьте адрес.');
+
+        $json = json_decode($html);
 
         foreach($json->items as $k => $v) {
             unset($result);
@@ -26,18 +31,23 @@ class parserController extends Controller
                 'date_text' => $req->input('class-name-additionally')
              ]);
 
-             if(!$result) return $this->showCustomError();
+             if(!$result) return $this->showCustomError('Введено неверное выражение XPath!');
 
-            $result = array_merge($result, $this->searchData($this->getHTML($result), [
+            $html = $this->getHTML($result);
+
+            if(!$html) return $this->showCustomError('Страница недоступна, проверьте адрес.');
+
+            $result = array_merge($result, $this->searchData($html, [
                 'image' => $req->input('attribute-detailed-img'),
-                'description' => $req->input('attribute-detailed-description')
+                'description' => $req->input('attribute-detailed-description'),
+                'favicon' => 'normalize-space(//link[contains(@rel, "icon")]/@href)'
              ]));
 
-             if(!$result) return $this->showCustomError();
+             if(!$result) return $this->showCustomError('Введено неверное выражение XPath!');
 
              $result['source'] = $this->getDomain($result['address']);
              $result['alias'] = md5($result['title']);
-             
+
              $this->saveData($result);
         }
 
@@ -63,6 +73,11 @@ class parserController extends Controller
         curl_setopt($req, CURLOPT_RETURNTRANSFER, 1);
         $content = curl_exec($req);
 
+        $httpCode = curl_getinfo($req, CURLINFO_HTTP_CODE);
+        if($httpCode == 404) {
+            return 0;
+        }
+
         return $content;
     }
 
@@ -87,13 +102,26 @@ class parserController extends Controller
 
     private function saveData($data) {
         $news = new News();
+        $domains = new Domains();
 
         if($news->where('title', $data['title'])->get()->count()) return;
+
+        
+        $domain = $domains->where('source', $data['source'])->get()->pluck('id');
+
+        if(count($domain)) {
+            $domain = $domain[0];
+        } else {
+            $domains->source = $data['source'];
+            $domains->favicon = $data['favicon'];
+            $domains->save();
+            $domain = $domains->id;
+        }
 
         $news->title = $data['title'];
         $news->description = $data['description'];
         $news->address = $data['address'];
-        $news->source = $data['source'];
+        $news->id_domain = $domain;
         $news->date_text = $data['date_text'];
         $news->image = $data['image'];
         $news->alias = $data['alias'];
@@ -101,8 +129,8 @@ class parserController extends Controller
         $news->save();
     }
 
-    private function showCustomError() {
-        return redirect()->route('home')->with('custom_errors', 'Введено неверное выражение XPath!');
+    private function showCustomError($text) {
+        return redirect()->route('home')->with('custom_errors', $text);
     }
 
     private function getDomain($addr) {

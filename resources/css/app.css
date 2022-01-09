@@ -5,3 +5,12 @@ h1 > a {
 .text-white-50 > p {
     text-align: justify;
 }
+
+.favicon {
+    width: 16px;
+}
+
+.text-date {
+    display: inline-block;
+    float: right;
+}
